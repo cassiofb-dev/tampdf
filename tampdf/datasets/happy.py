@@ -17,6 +17,7 @@ class HappyDataset(Dataset):
   def generic_dataset_to_dataframe(self, generic_path: str) -> pd.DataFrame:
     return pd.read_csv(
       generic_path,
+      names=self.column_names,
       comment="#",
       delim_whitespace=True,
       header="infer",
