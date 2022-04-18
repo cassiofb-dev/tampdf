@@ -21,20 +21,23 @@ class Dataset:
     self.generate_tables = generate_tables
     self.generic_paths: list[str] = []
     self.validation_paths: list[str] = []
+    self.column_names = Dataset.get_column_names()
 
     self.download_datasets()
 
-    self.generic_dataframe: pd.DataFrame = self.get_clean_data()
+    self.generic_dataframe: pd.DataFrame = self.get_processed_data()
+
+    self.save_processed_data()
 
   def download_datasets(self):
-    os.makedirs(Dataset.get_path(), exist_ok=True)
+    os.makedirs(Dataset.get_raw_path(), exist_ok=True)
     self.download_validation_or_generic_datasets(True, ".data")
     self.download_validation_or_generic_datasets(False, "_validation.data")
 
   def download_validation_or_generic_datasets(self, is_generic: bool, ends_with: str):
     for (index, dataset_url) in enumerate(self.urls if is_generic else self.validation_urls):
       DATASET_NAME = self.name + "_" + str(index) + ends_with
-      DATASET_PATH = os.path.join(Dataset.get_path(), DATASET_NAME)
+      DATASET_PATH = os.path.join(Dataset.get_raw_path(), DATASET_NAME)
 
       self.generic_paths.append(DATASET_PATH) if is_generic else self.validation_paths.append(DATASET_PATH)
 
@@ -55,7 +58,7 @@ class Dataset:
 
     return generic_dataframes
 
-  def get_clean_data(self) -> pd.DataFrame:
+  def get_processed_data(self) -> pd.DataFrame:
     generics_dataframes = self.generics_datasets_to_dataframes()
 
     merged_generics_dataframes = pd.concat(generics_dataframes)
@@ -68,10 +71,36 @@ class Dataset:
 
     return no_outlier_df
 
+  def save_processed_data(self):
+    FILENAME = self.name + "_processed.csv"
+    PROCESSED_DATAPATH = os.path.join(Dataset.get_processed_path(), FILENAME)
+
+    self.generic_dataframe.to_csv(PROCESSED_DATAPATH)
+
   @staticmethod
-  def get_path():
+  def get_ugriz_columns():
+    return [letter for letter in "ugriz"]
+
+  @staticmethod
+  def get_ugriz_error_columns():
+    return [column_name + 'Err' for column_name in Dataset.get_ugriz_columns()]
+
+  @staticmethod
+  def get_column_names():
+    return ["ID", *Dataset.get_ugriz_columns(), *Dataset.get_ugriz_error_columns(), "photo-z"]
+
+  @staticmethod
+  def get_raw_path():
     CURRENT_PATH = os.getcwd()
     DATASET_PATH = "data/datasets/raws"
+    FULL_PATH = os.path.join(CURRENT_PATH, DATASET_PATH)
+
+    return FULL_PATH
+
+  @staticmethod
+  def get_processed_path():
+    CURRENT_PATH = os.getcwd()
+    DATASET_PATH = "data/datasets"
     FULL_PATH = os.path.join(CURRENT_PATH, DATASET_PATH)
 
     return FULL_PATH
