@@ -1,9 +1,16 @@
-from tampdf.datasets.happy import HappyDataset
+import time
+from tampdf.datasets.happy_a import HappyA
 
 
-happy_dataset = HappyDataset(
-  name="happy",
-  urls=["https://raw.githubusercontent.com/COINtoolbox/photoz_catalogues/master/Teddy/forTemplateBased/teddyT_A.cat"],
-)
+t0 = time.perf_counter()
 
-print(happy_dataset.generic_dataframe.head())
+for index in range(5): 
+  print(index)
+  happy_a_dataset = HappyA(
+    name="happy_a",
+    url="https://raw.githubusercontent.com/COINtoolbox/photoz_catalogues/master/Teddy/forTemplateBased/teddyT_A.cat",
+  )
+
+t1 = time.perf_counter()
+
+print(t1 - t0)
