@@ -34,6 +34,8 @@ class Dataset:
     self.process_dataset()
     self.save_dataset()
 
+    self.analyse_dataset()
+
   def download_dataset(self):
     os.makedirs(Dataset.get_raw_path(), exist_ok=True)
 
@@ -50,6 +52,7 @@ class Dataset:
 
   def process_dataset(self) -> pd.DataFrame:
     dataframe = self.dataset_to_dataframe(self.path)
+    self.raw_dataframe = dataframe
 
     no_duplicate_df = dataframe.drop_duplicates()
 
@@ -62,7 +65,6 @@ class Dataset:
     no_outlier_df = no_duplicate_df[outlier_mask]
 
     self.dataframe = no_outlier_df
-    self.raw_dataframe = dataframe
 
   def save_dataset(self):
     os.makedirs(Dataset.get_processed_path(), exist_ok=True)
@@ -75,25 +77,119 @@ class Dataset:
 
     self.dataframe_path = PROCESSED_DATAPATH
 
-  def analyse(self):
-    if self.generate_plots: self.init_plot_analysis()
-    if self.generate_tables: self.init_plot_analysis()
-    if self.generate_profiles: self.init_plot_analysis()
+  def analyse_dataset(self):
+    if self.generate_plots: self.run_plot_analysis()
+    if self.generate_tables: self.run_table_analysis()
+    if self.generate_profiles: self.run_profile_analysis()
 
-  def init_plot_analysis(self):
+  def run_plot_analysis(self):
+    os.makedirs(Dataset.get_plots_path(), exist_ok=True)
+
+    for x_column, y_column in zip(Dataset.get_feature_columns(), Dataset.get_target_columns()):
+      Dataset.generate_regplot(
+        x_column=x_column,
+        y_column=y_column,
+        filepath=os.path.join(Dataset.get_plots_path(), f"{self.name}_{x_column}_vs_{y_column}_regplot_raw.png"),
+        dataframe=self.raw_dataframe,
+      )
+
+      Dataset.generate_regplot(
+        x_column=x_column,
+        y_column=y_column,
+        filepath=os.path.join(Dataset.get_plots_path(), f"{self.name}_{x_column}_vs_{y_column}_regplot_processed.png"),
+        dataframe=self.dataframe,
+      )
+
+    sns.set_theme(font_scale=2)
+
+    self.generate_raw_pairplots()
+    self.generate_processed_pairplots()
+
+  def generate_raw_pairplots(self):
+    sns.pairplot(
+      self.raw_dataframe,
+      x_vars=Dataset.get_feature_columns(),
+      y_vars=Dataset.get_feature_columns(),
+    ).savefig(os.path.join(Dataset.get_plots_path(), f"{self.name}_bands_vs_bands_raw.png"))
+
+    sns.pairplot(
+      self.raw_dataframe,
+      x_vars=Dataset.get_feature_columns(),
+      y_vars=Dataset.get_target_columns(),
+    ).savefig(os.path.join(Dataset.get_plots_path(), f"{self.name}_bands_vs_errors_raw.png"))
+
+    sns.pairplot(
+      self.raw_dataframe,
+      x_vars=Dataset.get_target_columns(),
+      y_vars=Dataset.get_target_columns(),
+    ).savefig(os.path.join(Dataset.get_plots_path(), f"{self.name}_errors_vs_errors_raw.png"))
+
+  def generate_processed_pairplots(self):
+    sns.pairplot(
+      self.dataframe,
+      x_vars=Dataset.get_feature_columns(),
+      y_vars=Dataset.get_feature_columns(),
+    ).savefig(os.path.join(Dataset.get_plots_path(), f"{self.name}_bands_vs_bands_raw.png"))
+
+    sns.pairplot(
+      self.dataframe,
+      x_vars=Dataset.get_feature_columns(),
+      y_vars=Dataset.get_target_columns(),
+    ).savefig(os.path.join(Dataset.get_plots_path(), f"{self.name}_bands_vs_errors_raw.png"))
+
+    sns.pairplot(
+      self.dataframe,
+      x_vars=Dataset.get_target_columns(),
+      y_vars=Dataset.get_target_columns(),
+    ).savefig(os.path.join(Dataset.get_plots_path(), f"{self.name}_errors_vs_errors_raw.png"))
+
+  def run_table_analysis(self):
     pass
 
+  def run_profile_analysis(self):
+    os.makedirs(Dataset.get_profiles_path(), exist_ok=True)
+
+    raw_profile_name = self.name + "_raw_profile"
+    raw_profile = ProfileReport(
+      df=self.raw_dataframe.drop("ID", axis=1),
+      title=raw_profile_name,
+      explorative=True,
+    )
+
+    raw_profile.to_file(os.path.join(Dataset.get_profiles_path(), raw_profile_name + ".html"))
+
+    processed_profile_name = self.name + "_processed_profile"
+    raw_profile = ProfileReport(
+      df=self.dataframe.drop("ID", axis=1),
+      title=processed_profile_name,
+      explorative=True,
+    )
+
+    raw_profile.to_file(os.path.join(Dataset.get_profiles_path(), processed_profile_name + ".html"))
+
   @staticmethod
-  def get_ugriz_columns():
+  def generate_regplot(x_column, y_column, filepath, dataframe):
+      regplot_figure = sns.regplot(
+        data=dataframe,
+        x=x_column,
+        y=y_column,
+        line_kws={"color": "black"},
+      ).get_figure()
+
+      regplot_figure.savefig(filepath)
+      regplot_figure.clf()
+
+  @staticmethod
+  def get_feature_columns():
     return [letter for letter in "ugriz"]
 
   @staticmethod
-  def get_ugriz_error_columns():
-    return [column_name + 'Err' for column_name in Dataset.get_ugriz_columns()]
+  def get_target_columns():
+    return [column_name + 'Err' for column_name in Dataset.get_feature_columns()]
 
   @staticmethod
   def get_column_names():
-    return ["ID", *Dataset.get_ugriz_columns(), *Dataset.get_ugriz_error_columns(), "photo-z"]
+    return ["ID", *Dataset.get_feature_columns(), *Dataset.get_target_columns(), "photo-z"]
 
   @staticmethod
   def get_raw_path():
