@@ -6,10 +6,7 @@ t0 = time.perf_counter()
 
 for index in range(5): 
   print(index)
-  happy_a_dataset = HappyA(
-    name="happy_a",
-    url="https://raw.githubusercontent.com/COINtoolbox/photoz_catalogues/master/Teddy/forTemplateBased/teddyT_A.cat",
-  )
+  happy_a = HappyA()
 
 t1 = time.perf_counter()
 

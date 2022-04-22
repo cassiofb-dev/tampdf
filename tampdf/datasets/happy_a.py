@@ -5,8 +5,8 @@ from tampdf.core.dataset import Dataset
 class HappyA(Dataset):
   def __init__(
     self,
-    url: str,
-    name: str,
+    url="https://raw.githubusercontent.com/COINtoolbox/photoz_catalogues/master/Teddy/forTemplateBased/teddyT_A.cat",
+    name="happy_a",
     generate_plots=True,
     generate_tables=True,
     generate_profiles=True,
