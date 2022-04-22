@@ -85,7 +85,7 @@ class Dataset:
   def run_plot_analysis(self):
     os.makedirs(Dataset.get_plots_path(), exist_ok=True)
 
-    for x_column, y_column in zip(Dataset.get_feature_columns(), Dataset.get_target_columns()):
+    for x_column, y_column in zip(Dataset.get_bands(), Dataset.get_errors()):
       Dataset.generate_regplot(
         x_column=x_column,
         y_column=y_column,
@@ -108,39 +108,39 @@ class Dataset:
   def generate_raw_pairplots(self):
     sns.pairplot(
       self.raw_dataframe,
-      x_vars=Dataset.get_feature_columns(),
-      y_vars=Dataset.get_feature_columns(),
+      x_vars=Dataset.get_bands(),
+      y_vars=Dataset.get_bands(),
     ).savefig(os.path.join(Dataset.get_plots_path(), f"{self.name}_bands_vs_bands_raw.png"))
 
     sns.pairplot(
       self.raw_dataframe,
-      x_vars=Dataset.get_feature_columns(),
-      y_vars=Dataset.get_target_columns(),
+      x_vars=Dataset.get_bands(),
+      y_vars=Dataset.get_errors(),
     ).savefig(os.path.join(Dataset.get_plots_path(), f"{self.name}_bands_vs_errors_raw.png"))
 
     sns.pairplot(
       self.raw_dataframe,
-      x_vars=Dataset.get_target_columns(),
-      y_vars=Dataset.get_target_columns(),
+      x_vars=Dataset.get_errors(),
+      y_vars=Dataset.get_errors(),
     ).savefig(os.path.join(Dataset.get_plots_path(), f"{self.name}_errors_vs_errors_raw.png"))
 
   def generate_processed_pairplots(self):
     sns.pairplot(
       self.dataframe,
-      x_vars=Dataset.get_feature_columns(),
-      y_vars=Dataset.get_feature_columns(),
+      x_vars=Dataset.get_bands(),
+      y_vars=Dataset.get_bands(),
     ).savefig(os.path.join(Dataset.get_plots_path(), f"{self.name}_bands_vs_bands_raw.png"))
 
     sns.pairplot(
       self.dataframe,
-      x_vars=Dataset.get_feature_columns(),
-      y_vars=Dataset.get_target_columns(),
+      x_vars=Dataset.get_bands(),
+      y_vars=Dataset.get_errors(),
     ).savefig(os.path.join(Dataset.get_plots_path(), f"{self.name}_bands_vs_errors_raw.png"))
 
     sns.pairplot(
       self.dataframe,
-      x_vars=Dataset.get_target_columns(),
-      y_vars=Dataset.get_target_columns(),
+      x_vars=Dataset.get_errors(),
+      y_vars=Dataset.get_errors(),
     ).savefig(os.path.join(Dataset.get_plots_path(), f"{self.name}_errors_vs_errors_raw.png"))
 
   def run_table_analysis(self):
@@ -180,16 +180,16 @@ class Dataset:
       regplot_figure.clf()
 
   @staticmethod
-  def get_feature_columns():
+  def get_bands():
     return [letter for letter in "ugriz"]
 
   @staticmethod
-  def get_target_columns():
-    return [column_name + 'Err' for column_name in Dataset.get_feature_columns()]
+  def get_errors():
+    return [column_name + 'Err' for column_name in Dataset.get_bands()]
 
   @staticmethod
   def get_column_names():
-    return ["ID", *Dataset.get_feature_columns(), *Dataset.get_target_columns(), "photo-z"]
+    return ["ID", *Dataset.get_bands(), *Dataset.get_errors(), "photo-z"]
 
   @staticmethod
   def get_raw_path():
