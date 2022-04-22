@@ -60,7 +60,7 @@ class Dataset:
       self.dataframe = no_duplicate_df
       return
 
-    outlier_mask = (np.abs(stats.zscore(no_duplicate_df)) < 3).all(axis=1)
+    outlier_mask = (np.abs(stats.zscore(no_duplicate_df)) < self.z_score_outlier_threshold).all(axis=1)
 
     no_outlier_df = no_duplicate_df[outlier_mask]
 
